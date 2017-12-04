@@ -19,6 +19,7 @@ QActive * const AO_Repl = &l_repl.super;
 UART_HandleTypeDef huart1;
 int count = 0;
 unsigned char notify[20] = {0};
+GPIO_InitTypeDef GPIO_InitStruct;
 
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
@@ -50,7 +51,8 @@ QState Repl_initial(Repl * const me, QEvt const * const e) {
 QState Blinky_off(Repl * const me, QEvt const * const e) {
     QState status;
     switch (e->sig) {
-        case Q_ENTRY_SIG: {
+        case Q_ENTRY_SIG: {\
+        	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 0);
         	int len = sprintf(notify, "LED_OFF %d\r\n", count);
 			HAL_UART_Transmit(&huart1, notify, len, 0xFFFFFFFF);
 			count++;
@@ -73,6 +75,7 @@ QState Blinky_on(Repl * const me, QEvt const * const e) {
     QState status;
     switch (e->sig) {
         case Q_ENTRY_SIG: {
+        	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 1);
         	int len = sprintf(notify, "LED_ON %d\r\n", count);
 			HAL_UART_Transmit(&huart1, notify, len, 0xFFFFFFFF);
 			count++;
@@ -116,9 +119,17 @@ static void MX_USART1_UART_Init(void)
 */
 static void MX_GPIO_Init(void)
 {
-
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
 
